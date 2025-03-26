@@ -2,8 +2,15 @@
 
 from fastapi import FastAPI #引入FastApi套件
 import datetime
+from pydantic import BaseModel, EmailStr ,Field #匯入Pydantic import BaseModel(建立資料模型)和EmailStr(自動驗證email格式) Field(能輸入驗證條件)
 
 app = FastAPI() #建立一個FastApi()應用程式物件 所有的 API 都會註冊在這個實體上
+
+#day2 Step 1：定義 Pydantic 資料模型並加入驗證條件
+class User(BaseModel): #定義一個python 類別 他是繼承BaseModel這個類別
+    name : str = Field(...,min_length=2,max_length = 50, description = "使用者名稱: 2~50個字")#至少兩字，最多五十字
+    email:EmailStr = Field(...,description="有效的email格式")# 自動驗證格式，例如 mantou@gmail.com
+    age:int = Field(..., gt = 0, le=120 , description = "年齡必須為1~120歲之間") #	年齡 > 0 且 ≦ 120
 
 #建立首頁路由
 
@@ -27,3 +34,11 @@ def Say_Hello(name): #將name變數傳入這個函式中
 def show_time():
     return{"time" : f"{datetime.datetime.now()}"}
 
+
+#day2 step2 建立post路由 接收並驗證json資料
+@app.post("/user")
+def create_user(user:User):
+    return {
+        "messege":"使用者建立成功",
+        "User" : user 
+    }
