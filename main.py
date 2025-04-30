@@ -1,6 +1,6 @@
 #main.py
 
-from fastapi import FastAPI #引入FastApi套件
+from fastapi import FastAPI ,Query #引入FastApi套件
 import datetime
 from pydantic import BaseModel, EmailStr ,Field #匯入Pydantic import BaseModel(建立資料模型)和EmailStr(自動驗證email格式) Field(能輸入驗證條件)
 
@@ -11,6 +11,18 @@ class User(BaseModel): #定義一個python 類別 他是繼承BaseModel這個類
     name : str = Field(...,min_length=2,max_length = 50, description = "使用者名稱: 2~50個字")#至少兩字，最多五十字
     email:EmailStr = Field(...,description="有效的email格式")# 自動驗證格式，例如 mantou@gmail.com
     age:int = Field(..., gt = 0, le=120 , description = "年齡必須為1~120歲之間") #	年齡 > 0 且 ≦ 120
+
+#day3 1.定義Address資料模型 
+class Address(BaseModel):  #用class方法繼承BaseModel
+    city: str
+    zipcode: str
+#day3 在User裡嵌套Address
+class UserWithAdress(BaseModel):
+    name:str
+    age:int
+    address:Address 
+ # 這就是「巢狀資料驗證」的核心，address 這個欄位裡面，是另外一個完整的模型（不是單純的字串或數字）！   
+
 
 #建立首頁路由
 
@@ -42,3 +54,45 @@ def create_user(user:User):
         "messege":"使用者建立成功",
         "User" : user 
     }
+
+#Query String: 就是網址裡的這個東西: ?name=Mantou 這段叫查詢參數(Query String)
+@app.get("/greet")
+def greet(name: str):
+    return{"messege" : f"Hello! {name}"}
+#解釋: ? 是開始查詢參數的標記
+
+# name是變數名稱
+
+# Mantle是傳入的值
+
+#day3 3.建立一個新的 POST API "/user_nested"
+@app.post("/user_nested")
+def create_user_with_address(user: UserWithAdress):
+    return{
+        "message" : "使用者建立成功",
+        "user" : user
+    }
+
+# day3 3.解釋:
+# @app.post("/user_nested")：建立一個新的 POST API，路徑是 /user_nested
+
+# def create_user_with_address(user: UserWithAddress)：
+
+# 這個函式會接收來自用戶送來的 JSON，並轉換成 UserWithAddress 的 Python 物件
+
+# 同時也會自動驗證資料對不對
+
+# 回傳的資料是一個字典，包含成功訊息與整份使用者資料。
+
+#這裡是 Query + Body 的混合用法
+@app.post("/create_user_with_role")
+def create_user_with_role(
+    user:User, #來自Body的Json資料
+    is_admin: bool = Query(False) #來自URL的查詢參數，預設為False
+):
+    return {
+        "message" : "使用者建立成功",
+        "user" : user,
+        "is_admin" : is_admin
+    }
+
