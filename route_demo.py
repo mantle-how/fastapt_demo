@@ -26,6 +26,8 @@ def square(number):
     number = int(number) #因為動態路由接收到的參數為型態為字串
     return {f"{number}'s square" : number*number}
 
+#以下為query string
+
 @app.get("/greet")
 #處理路徑: /greet?name=名字
 def greet(name):
